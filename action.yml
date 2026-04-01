@@ -1,0 +1,25 @@
+name: nix-cache-action
+description: A GitHub Action for caching Nix.
+author: DuskSystems
+
+inputs:
+  key:
+    description: An explicit key for restoring and saving the cache.
+    required: true
+  restore-keys:
+    description: An ordered multiline string listing the prefix-matched keys, that are used for restoring stale cache if no cache hit occurred for key. Note `cache-hit` returns false in this case.
+    required: false
+
+outputs:
+  cache-hit:
+    description: A boolean value to indicate an exact match was found for the primary key.
+
+runs:
+  using: node24
+  main: dist/restore.js
+  post: dist/save.js
+  post-if: always()
+
+branding:
+  icon: archive
+  color: gray-dark

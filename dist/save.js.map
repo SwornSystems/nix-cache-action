@@ -1,0 +1,1 @@
+{"version":3,"file":"save.js","names":[],"sources":["../src/save.ts"],"sourcesContent":["import * as core from \"@actions/core\";\n\ntry {\n  core.info(\"nix-cache-action: save\");\n} catch (error: unknown) {\n  if (error instanceof Error) {\n    core.setFailed(error.message);\n  }\n}\n"],"mappings":";;AAEA,IAAI;AACF,GAAU,yBAAyB;SAC5B,GAAgB;AACvB,CAAI,aAAiB,SACnB,EAAe,EAAM,QAAQ"}

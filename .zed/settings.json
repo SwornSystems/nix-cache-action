@@ -1,0 +1,99 @@
+{
+  "remove_trailing_whitespace_on_save": true,
+  "ensure_final_newline_on_save": true,
+
+  "file_scan_exclusions": ["**/.direnv", "**/.git"],
+
+  "languages": {
+    "TypeScript": {
+      "language_servers": ["oxlint", "oxfmt", "vtsls"],
+      "format_on_save": "on",
+      "formatter": "language_server"
+    },
+
+    "JSON": {
+      "language_servers": ["oxlint", "oxfmt", "json-language-server"],
+      "format_on_save": "on",
+      "formatter": "language_server"
+    },
+
+    "JSONC": {
+      "language_servers": ["oxlint", "oxfmt", "json-language-server"],
+      "format_on_save": "on",
+      "formatter": "language_server"
+    },
+
+    "TOML": {
+      "language_servers": ["tombi"],
+      "format_on_save": "on",
+      "formatter": "language_server"
+    },
+
+    "Nix": {
+      "language_servers": ["nixd", "nil"],
+      "format_on_save": "on",
+      "formatter": "language_server"
+    }
+  },
+
+  "lsp": {
+    "oxlint": {
+      "binary": {
+        "path": "oxlint",
+        "arguments": ["--lsp"]
+      }
+    },
+
+    "oxfmt": {
+      "binary": {
+        "path": "oxfmt",
+        "arguments": ["--lsp"]
+      }
+    },
+
+    "vtsls": {
+      "binary": {
+        "path": "vtsls",
+        "arguments": ["--stdio"]
+      }
+    },
+
+    "json-language-server": {
+      "binary": {
+        "path": "vscode-json-language-server",
+        "arguments": ["--stdio"]
+      }
+    },
+
+    "typos": {
+      "binary": {
+        "path": "typos-lsp"
+      }
+    },
+
+    "tombi": {
+      "binary": {
+        "path": "tombi",
+        "arguments": ["lsp"]
+      }
+    },
+
+    "nixd": {
+      "binary": {
+        "path": "nixd"
+      },
+
+      "settings": {
+        "formatting": {
+          "command": ["nixfmt", "--width=120"]
+        }
+      }
+    },
+
+    "nil": {
+      "binary": {
+        "path": "nil"
+      }
+    }
+  }
+}
