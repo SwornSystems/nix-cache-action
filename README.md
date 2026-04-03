@@ -18,6 +18,8 @@ A GitHub Action for caching Nix.
 
 ## Why?
 
+### Efficiency
+
 - [`nix-community/cache-nix-action`] caches the entire `/nix` directory.
 - [`DeterminateSystems/magic-nix-cache`] caches every store path closure.
 - [`DuskSystems/nix-cache-action`] caches only what can't be fetched from substituters.
@@ -57,7 +59,11 @@ Results in the following cache save stats:
 | `magic-nix-cache`  | 200     | 798 MiB |
 | `nix-cache-action` | 1       | 377 MiB |
 
-The tradeoff of course is this relies on the substituters being consistently available, and fast to fetch from, at restore time.
+The tradeoff is this relies on substituters being consistently available and fast to fetch from at restore time.
+
+### Compatibility
+
+Since this action uses [`@actions/cache`], it should be compatible with alternative GitHub Actions runners that provide their own cache backends.
 
 ## License
 
@@ -66,3 +72,4 @@ The tradeoff of course is this relies on the substituters being consistently ava
 [`nix-community/cache-nix-action`]: https://github.com/nix-community/cache-nix-action
 [`DeterminateSystems/magic-nix-cache`]: https://github.com/DeterminateSystems/magic-nix-cache
 [`DuskSystems/nix-cache-action`]: https://github.com/DuskSystems/nix-cache-action
+[`@actions/cache`]: https://github.com/actions/toolkit/tree/main/packages/cache
