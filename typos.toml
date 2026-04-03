@@ -1,4 +1,4 @@
 # https://github.com/crate-ci/typos/blob/master/docs/reference.md
 
 [files]
-extend-exclude = ["dist"]
+extend-exclude = ["CHANGELOG.md", "dist"]
