@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/DuskSystems/nix-cache-action/compare/v1.3.0...v1.4.0) (2026-04-03)
+
+
+### Features
+
+* Implement NAR serializer ([32ba929](https://github.com/DuskSystems/nix-cache-action/commit/32ba929a14d5fab1a76bd8b1416827d87af32324))
+
 ## [1.3.0](https://github.com/DuskSystems/nix-cache-action/compare/v1.2.0...v1.3.0) (2026-04-03)
 
 
