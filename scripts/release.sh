@@ -14,8 +14,6 @@ npm ci
 
 npx release-please github-release \
   --repo-url DuskSystems/nix-cache-action \
-  --token "${GITHUB_TOKEN}" \
-  --release-type node \
-  --pull-request-title-pattern 'chore: Release v${version}'
+  --token "${GITHUB_TOKEN}"
 
 npm publish --provenance --access public
