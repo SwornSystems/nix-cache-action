@@ -1,0 +1,200 @@
+import type { Db } from "./db.ts";
+
+import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { createReadStream, createWriteStream } from "node:fs";
+import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
+
+import { Nix } from "./nix.ts";
+
+interface NarInfo {
+  file: string;
+  fields: Map<string, string>;
+}
+
+export class Cache {
+  static readonly path = join(tmpdir(), "nix-cache-action");
+  readonly directory: string;
+  entries: NarInfo[];
+
+  private constructor(directory: string, entries: NarInfo[]) {
+    this.directory = directory;
+    this.entries = entries;
+  }
+
+  static async open(directory: string = Cache.path): Promise<Cache> {
+    const files = await readdir(directory);
+    const narInfos = await Promise.all(
+      files
+        .filter((file) => file.endsWith(".narinfo"))
+        .map(async (file) => {
+          const filePath = join(directory, file);
+          const content = await readFile(filePath, "utf8");
+          const fields = Cache.parseNarInfo(content);
+          return { file, fields };
+        })
+    );
+
+    return new Cache(directory, narInfos);
+  }
+
+  static async init(): Promise<void> {
+    await mkdir(Cache.path, { recursive: true });
+    await writeFile(join(Cache.path, "nix-cache-info"), "StoreDir: /nix/store\n");
+  }
+
+  // Caches ultimate paths.
+  async populate(paths: string[], db: Db): Promise<number> {
+    const narDirectory = join(this.directory, "nar");
+    await mkdir(narDirectory, { recursive: true });
+
+    const infos = db.ultimatePathInfo(paths);
+
+    const newEntries = await Promise.all(
+      infos.map(async (info) => {
+        const [storeHash] = basename(info.path).split("-");
+        const references = info.references.map((ref) => basename(ref)).join(" ");
+
+        const narPath = join(narDirectory, `${storeHash}.nar`);
+        await Cache.dumpPath(info.path, narPath);
+
+        const narHash = await Cache.hashNar(narPath);
+        const narStat = await stat(narPath);
+        const narSize = narStat.size;
+
+        const fields = new Map([
+          ["StorePath", info.path],
+          ["URL", `nar/${storeHash}.nar`],
+          ["Compression", "none"],
+          ["FileHash", `sha256:${narHash}`],
+          ["FileSize", String(narSize)],
+          ["NarHash", `sha256:${narHash}`],
+          ["NarSize", String(narSize)],
+          ["References", references]
+        ]);
+
+        const narInfoFile = `${storeHash}.narinfo`;
+        const narInfoContent = [...fields].map(([key, value]) => `${key}: ${value}`).join("\n");
+        await writeFile(join(this.directory, narInfoFile), `${narInfoContent}\n`);
+
+        return { file: narInfoFile, fields };
+      })
+    );
+
+    this.entries.push(...newEntries);
+    return newEntries.length;
+  }
+
+  gc(activePaths: Set<string>): Promise<NarInfo[]> {
+    return this.retain((narInfo) => {
+      const path = narInfo.fields.get("StorePath");
+      return path === undefined || activePaths.has(path);
+    });
+  }
+
+  async sync(substituters: string[]): Promise<NarInfo[]> {
+    if (this.entries.length === 0 || substituters.length === 0) {
+      return [];
+    }
+
+    const results = await Promise.all(
+      this.entries.map(async (narInfo) => {
+        const hash = basename(narInfo.file, ".narinfo");
+        const checks = substituters.map(async (sub) => {
+          const response = await fetch(`${sub}/${hash}.narinfo`, { method: "HEAD" });
+          if (!response.ok) {
+            throw new Error(`Not found: ${sub}/${hash}.narinfo`);
+          }
+        });
+
+        // Short-circuit on first substituter hit.
+        const available = await Promise.any(checks).then(
+          () => true,
+          () => false
+        );
+
+        return { narInfo, available };
+      })
+    );
+
+    const upstream = new Set(results.filter((result) => result.available).map((result) => result.narInfo));
+    return this.retain((narInfo) => !upstream.has(narInfo));
+  }
+
+  // Keeps matching entries, deletes the rest from disk.
+  private async retain(predicate: (narInfo: NarInfo) => boolean): Promise<NarInfo[]> {
+    const targets = this.entries.filter((narInfo) => !predicate(narInfo));
+    if (targets.length === 0) {
+      return [];
+    }
+
+    await Promise.all(
+      targets.map(async (narInfo) => {
+        const url = narInfo.fields.get("URL");
+        if (url !== undefined) {
+          const narFile = join(this.directory, url);
+          await rm(narFile, { force: true });
+        }
+
+        const narInfoPath = join(this.directory, narInfo.file);
+        await rm(narInfoPath);
+      })
+    );
+
+    const removed = new Set(targets);
+    this.entries = this.entries.filter((narInfo) => !removed.has(narInfo));
+    return targets;
+  }
+
+  private static hashNar(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const hash = createHash("sha256");
+      const stream = createReadStream(filePath);
+
+      stream.on("data", (chunk: Buffer) => hash.update(chunk));
+      stream.on("end", () => {
+        const base32 = Nix.toBase32(hash.digest());
+        resolve(base32);
+      });
+      stream.on("error", reject);
+    });
+  }
+
+  private static dumpPath(path: string, destination: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const child = spawn("nix", ["nar", "dump-path", path]);
+
+      const stdout = createWriteStream(destination);
+      const stderr: Buffer[] = [];
+
+      child.stdout.pipe(stdout);
+      child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
+      child.on("close", (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          const message = Buffer.concat(stderr).toString("utf8").trim();
+          reject(new Error(`nix nar dump-path failed (${code}): ${message}`));
+        }
+      });
+      child.on("error", reject);
+    });
+  }
+
+  private static parseNarInfo(content: string): Map<string, string> {
+    const fields = new Map<string, string>();
+
+    for (const line of content.split("\n")) {
+      if (line.includes(":")) {
+        const separator = line.indexOf(":");
+        const key = line.slice(0, separator).trim();
+        const value = line.slice(separator + 1).trim();
+        fields.set(key, value);
+      }
+    }
+
+    return fields;
+  }
+}

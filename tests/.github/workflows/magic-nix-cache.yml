@@ -1,0 +1,34 @@
+name: magic-nix-cache
+
+on: workflow_dispatch
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@08dcb3a5e62fa31e2da3d490afc4176ef55ecd72 # v30
+
+      - name: Support Act
+        if: env.ACT == 'true'
+        run: |
+          echo "ACTIONS_RUNTIME_URL=${ACTIONS_CACHE_URL}" >> "$GITHUB_ENV"
+          echo "ACTIONS_RUNTIME_TOKEN=token" >> "$GITHUB_ENV"
+          echo "ACTIONS_RESULTS_URL=${ACTIONS_CACHE_URL}" >> "$GITHUB_ENV"
+          echo "ACTIONS_CACHE_SERVICE_V2=" >> "$GITHUB_ENV"
+
+      - name: Cache
+        uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b # v8
+        with:
+          use-flakehub: false
+
+      - name: Build
+        run: nix develop --command true
