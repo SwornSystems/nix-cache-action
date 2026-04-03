@@ -1,13 +1,10 @@
 import type { Db } from "./db.ts";
 
-import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
-import { createReadStream, createWriteStream } from "node:fs";
-import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
-import { Nix } from "./nix.ts";
+import { Nar } from "./nar.ts";
 
 interface NarInfo {
   file: string;
@@ -58,20 +55,16 @@ export class Cache {
         const references = info.references.map((ref) => basename(ref)).join(" ");
 
         const narPath = join(narDirectory, `${storeHash}.nar`);
-        await Cache.dumpPath(info.path, narPath);
-
-        const narHash = await Cache.hashNar(narPath);
-        const narStat = await stat(narPath);
-        const narSize = narStat.size;
+        const nar = await Nar.pack(info.path, narPath);
 
         const fields = new Map([
           ["StorePath", info.path],
           ["URL", `nar/${storeHash}.nar`],
           ["Compression", "none"],
-          ["FileHash", `sha256:${narHash}`],
-          ["FileSize", String(narSize)],
-          ["NarHash", `sha256:${narHash}`],
-          ["NarSize", String(narSize)],
+          ["FileHash", `sha256:${nar.nix32}`],
+          ["FileSize", String(nar.size)],
+          ["NarHash", `sha256:${nar.nix32}`],
+          ["NarSize", String(nar.size)],
           ["References", references]
         ]);
 
@@ -146,41 +139,6 @@ export class Cache {
     const removed = new Set(targets);
     this.entries = this.entries.filter((narInfo) => !removed.has(narInfo));
     return targets;
-  }
-
-  private static hashNar(filePath: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const hash = createHash("sha256");
-      const stream = createReadStream(filePath);
-
-      stream.on("data", (chunk: Buffer) => hash.update(chunk));
-      stream.on("end", () => {
-        const base32 = Nix.toBase32(hash.digest());
-        resolve(base32);
-      });
-      stream.on("error", reject);
-    });
-  }
-
-  private static dumpPath(path: string, destination: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const child = spawn("nix", ["nar", "dump-path", path]);
-
-      const stdout = createWriteStream(destination);
-      const stderr: Buffer[] = [];
-
-      child.stdout.pipe(stdout);
-      child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
-      child.on("close", (code) => {
-        if (code === 0) {
-          resolve();
-        } else {
-          const message = Buffer.concat(stderr).toString("utf8").trim();
-          reject(new Error(`nix nar dump-path failed (${code}): ${message}`));
-        }
-      });
-      child.on("error", reject);
-    });
   }
 
   private static parseNarInfo(content: string): Map<string, string> {

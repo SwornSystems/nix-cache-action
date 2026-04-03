@@ -44,3 +44,26 @@ jobs:
 
       - name: Run checks
         run: ./scripts/checks.sh
+
+  coverage:
+    name: Coverage
+    needs: setup
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Generate coverage
+        run: ./scripts/coverage.sh
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@3f20e214133d0983f9a10f3d63b0faf9241a3daa # v6.0.0
+        with:
+          files: coverage/coverage-final.json
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }} # zizmor: ignore[secrets-outside-env]

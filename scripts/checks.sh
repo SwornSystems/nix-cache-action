@@ -17,6 +17,7 @@ oxlint
 oxfmt --check
 tsgo
 npx knip
+npx vitest run
 npm run build
 if git status --porcelain | grep .; then
   exit 1
