@@ -9,6 +9,12 @@
   ],
   "license": "MIT OR Apache-2.0",
   "repository": "https://github.com/DuskSystems/nix-cache-action",
+  "files": [
+    "LICENSE-*",
+    "README.md",
+    "action.yml",
+    "dist"
+  ],
   "type": "module",
   "scripts": {
     "build": "vite build"
