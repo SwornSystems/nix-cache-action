@@ -29,10 +29,12 @@
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",
     "@types/node": "25.5.0",
+    "@vitest/coverage-v8": "4.1.2",
     "knip": "6.3.0",
     "release-please": "17.3.0",
     "typescript": "6.0.2",
-    "vite": "8.0.3"
+    "vite": "8.0.3",
+    "vitest": "4.1.2"
   },
   "engines": {
     "node": ">=24"

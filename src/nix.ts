@@ -118,8 +118,8 @@ export class Nix {
     await exec(`echo ${JSON.stringify(substituter)} | tee -a ${nixDirectory}/nix.conf`);
   }
 
-  // Encodes bytes as Nix base32.
-  static toBase32(bytes: Buffer): string {
+  // Encodes bytes as nix32.
+  static toNix32(bytes: Buffer): string {
     const alphabet = "0123456789abcdfghijklmnpqrsvwxyz";
 
     let value = 0n;
