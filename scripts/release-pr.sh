@@ -7,4 +7,4 @@ npx release-please release-pr \
   --token "${GITHUB_TOKEN}" \
   --release-type node \
   --bump-minor-pre-major \
-  --pull-request-title-pattern 'chore: release v${version}'
+  --pull-request-title-pattern 'chore: Release v${version}'

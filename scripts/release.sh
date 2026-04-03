@@ -6,7 +6,7 @@ if [[ "${CI}" != "true" ]]; then
 fi
 
 MESSAGE=$(git log -1 --format=%s)
-if [[ "${MESSAGE}" != "chore: release v"* ]]; then
+if [[ "${MESSAGE}" != "chore: Release v"* ]]; then
   exit 0
 fi
 
@@ -16,6 +16,6 @@ npx release-please github-release \
   --repo-url DuskSystems/nix-cache-action \
   --token "${GITHUB_TOKEN}" \
   --release-type node \
-  --pull-request-title-pattern 'chore: release v${version}'
+  --pull-request-title-pattern 'chore: Release v${version}'
 
 npm publish --provenance --access public

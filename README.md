@@ -9,7 +9,7 @@ A GitHub Action for caching Nix.
 
 ```yaml
 - name: Cache Nix
-  uses: DuskSystems/nix-cache-action@v0.1.0
+  uses: DuskSystems/nix-cache-action@${VERSION}
   with:
     key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock', '**/*.nix') }}
     restore-keys: |
