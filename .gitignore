@@ -1,9 +1,6 @@
 # Node
 node_modules
 
-# Coverage
-coverage
-
 # Nix
 result
 result-*

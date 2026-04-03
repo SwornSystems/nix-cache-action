@@ -52,6 +52,7 @@
             committed
 
             # GitHub
+            act
             gh
             zizmor
 

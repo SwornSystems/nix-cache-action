@@ -1,12 +1,6 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  test: {
-    coverage: {
-      provider: "v8"
-    }
-  },
-
   build: {
     target: "node24",
 

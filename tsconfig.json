@@ -2,6 +2,7 @@
   "extends": "@tsconfig/node24/tsconfig.json",
   "include": ["src"],
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "noEmit": true,
     "types": ["node"]
   }
