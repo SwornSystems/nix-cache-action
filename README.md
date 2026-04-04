@@ -13,7 +13,7 @@ A GitHub Action for caching Nix.
 - name: Cache Nix
   uses: DuskSystems/nix-cache-action@${VERSION}
   with:
-    key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock', '**/*.nix') }}
+    key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock', '**/*.nix') }}
     restore-keys: |
       nix-${{ runner.os }}-${{ runner.arch }}-
 ```

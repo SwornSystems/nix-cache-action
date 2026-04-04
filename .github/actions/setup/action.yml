@@ -16,7 +16,7 @@ runs:
     - name: Cache Nix
       uses: ./
       with:
-        key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+        key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock', '**/*.nix') }}
         restore-keys: |
           nix-${{ runner.os }}-${{ runner.arch }}-
 
