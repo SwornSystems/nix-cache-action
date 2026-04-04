@@ -13,6 +13,7 @@ interface NarInfo {
 
 export class Cache {
   static readonly path = join(tmpdir(), "nix-cache-action");
+  static readonly nar = join(Cache.path, "nar");
   private entries: NarInfo[];
 
   private constructor(entries: NarInfo[]) {
@@ -36,14 +37,15 @@ export class Cache {
   }
 
   static async init(): Promise<void> {
-    await mkdir(Cache.path, { recursive: true });
-    await writeFile(join(Cache.path, "nix-cache-info"), "StoreDir: /nix/store\n");
+    await mkdir(Cache.nar, { recursive: true });
+
+    const cacheInfo = join(Cache.path, "nix-cache-info");
+    await writeFile(cacheInfo, "StoreDir: /nix/store\n");
   }
 
   // Caches ultimate paths.
   async populate(paths: string[], db: Db): Promise<number> {
-    const narDirectory = join(Cache.path, "nar");
-    await mkdir(narDirectory, { recursive: true });
+    await mkdir(Cache.nar, { recursive: true });
 
     const ultimates = db.ultimates(paths);
     const newEntries = await Promise.all(
@@ -51,7 +53,7 @@ export class Cache {
         const [storeHash] = basename(info.path).split("-");
         const references = info.references.map((ref) => basename(ref)).join(" ");
 
-        const narPath = join(narDirectory, `${storeHash}.nar`);
+        const narPath = join(Cache.nar, `${storeHash}.nar`);
         const nar = await Nar.pack(info.path, narPath);
 
         const fields = new Map([
