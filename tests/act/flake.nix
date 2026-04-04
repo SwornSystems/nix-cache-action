@@ -1,5 +1,5 @@
 {
-  description = "integration";
+  description = "act";
 
   inputs = {
     nixpkgs = {
@@ -41,8 +41,8 @@
     in
     {
       devShells = perSystemPkgs (pkgs: {
-        default = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
-          name = "integration-shell";
+        default = pkgs.mkShell {
+          name = "act-shell";
 
           nativeBuildInputs = with pkgs; [
             # System
