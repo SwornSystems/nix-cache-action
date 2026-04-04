@@ -35544,6 +35544,7 @@ var uD = w(ye), dD = /* @__PURE__ */ function(e) {
 	}
 }, gD = class e {
 	static path = ve(te(), "nix-cache-action");
+	static nar = ve(e.path, "nar");
 	entries;
 	constructor(e) {
 		this.entries = e;
@@ -35559,28 +35560,27 @@ var uD = w(ye), dD = /* @__PURE__ */ function(e) {
 		})));
 	}
 	static async init() {
-		await de(e.path, { recursive: !0 }), await ge(ve(e.path, "nix-cache-info"), "StoreDir: /nix/store\n");
+		await de(e.nar, { recursive: !0 }), await ge(ve(e.path, "nix-cache-info"), "StoreDir: /nix/store\n");
 	}
 	async populate(t, n) {
-		let r = ve(e.path, "nar");
-		await de(r, { recursive: !0 });
-		let i = n.ultimates(t), a = await Promise.all(i.map(async (t) => {
-			let [n] = _e(t.path).split("-"), i = t.references.map((e) => _e(e)).join(" "), a = ve(r, `${n}.nar`), o = await hD.pack(t.path, a), s = new Map([
+		await de(e.nar, { recursive: !0 });
+		let r = n.ultimates(t), i = await Promise.all(r.map(async (t) => {
+			let [n] = _e(t.path).split("-"), r = t.references.map((e) => _e(e)).join(" "), i = ve(e.nar, `${n}.nar`), a = await hD.pack(t.path, i), o = new Map([
 				["StorePath", t.path],
 				["URL", `nar/${n}.nar`],
 				["Compression", "none"],
-				["FileHash", `sha256:${o.nix32}`],
-				["FileSize", String(o.size)],
-				["NarHash", `sha256:${o.nix32}`],
-				["NarSize", String(o.size)],
-				["References", i]
-			]), c = `${n}.narinfo`;
-			return await ge(ve(e.path, c), `${[...s].map(([e, t]) => `${e}: ${t}`).join("\n")}\n`), {
-				file: c,
-				fields: s
+				["FileHash", `sha256:${a.nix32}`],
+				["FileSize", String(a.size)],
+				["NarHash", `sha256:${a.nix32}`],
+				["NarSize", String(a.size)],
+				["References", r]
+			]), s = `${n}.narinfo`;
+			return await ge(ve(e.path, s), `${[...o].map(([e, t]) => `${e}: ${t}`).join("\n")}\n`), {
+				file: s,
+				fields: o
 			};
 		}));
-		return this.entries.push(...a), a.length;
+		return this.entries.push(...i), i.length;
 	}
 	gc(e) {
 		return this.retain((t) => {
@@ -35682,4 +35682,4 @@ var uD = w(ye), dD = /* @__PURE__ */ function(e) {
 //#endregion
 export { iD as a, Wr as c, Rr as d, Lr as f, pD as i, Hr as l, _D as n, sD as o, gD as r, Ir as s, vD as t, Ur as u };
 
-//# sourceMappingURL=snapshot-CaGpseb3.js.map
+//# sourceMappingURL=snapshot-BCVRAY_w.js.map
