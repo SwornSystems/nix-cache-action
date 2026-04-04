@@ -3,7 +3,7 @@ import type { WriteStream } from "node:fs";
 import { createHash, type Hash } from "node:crypto";
 import { createWriteStream } from "node:fs";
 import { createReadStream } from "node:fs";
-import { lstat, readdir, readlink, stat } from "node:fs/promises";
+import { lstat, readdir, readlink } from "node:fs/promises";
 import { join } from "node:path";
 
 import { Nix } from "./nix.ts";
@@ -41,7 +41,7 @@ export class Nar {
     });
 
     const { size } = nar;
-    const nix32 = Nix.toNix32(nar.hash.digest());
+    const nix32 = Nix.nix32(nar.hash.digest());
 
     return { nix32, size };
   }
@@ -60,7 +60,7 @@ export class Nar {
       }
 
       this.str("contents");
-      await this.streamFile(fsPath);
+      await this.streamFile(fsPath, stats.size);
     } else if (stats.isSymbolicLink()) {
       this.str("type");
       this.str("symlink");
@@ -79,10 +79,7 @@ export class Nar {
         this.str("name");
         this.str(entry);
         this.str("node");
-
-        // eslint-disable-next-line no-await-in-loop
-        await this.packPath(join(fsPath, entry));
-
+        await this.packPath(join(fsPath, entry)); // oxlint-disable-line no-await-in-loop
         this.str(")");
       }
     }
@@ -90,12 +87,10 @@ export class Nar {
     this.str(")");
   }
 
-  private async streamFile(fsPath: string): Promise<void> {
-    const fileStat = await stat(fsPath);
-    const fileSize = fileStat.size;
-
-    const length = Buffer.alloc(8);
+  private async streamFile(fsPath: string, fileSize: number): Promise<void> {
+    const length = Buffer.allocUnsafe(8);
     length.writeBigUInt64LE(BigInt(fileSize));
+
     this.hash.update(length);
     this.file.write(length);
     this.size += 8;
@@ -104,9 +99,14 @@ export class Nar {
       const stream = createReadStream(fsPath);
       stream.on("data", (chunk: Buffer) => {
         this.hash.update(chunk);
-        this.file.write(chunk);
         this.size += chunk.length;
+
+        if (!this.file.write(chunk)) {
+          stream.pause();
+          this.file.once("drain", () => stream.resume());
+        }
       });
+
       stream.on("end", resolve);
       stream.on("error", reject);
     });
@@ -123,7 +123,7 @@ export class Nar {
   private str(value: string | Buffer): void {
     const bytes = typeof value === "string" ? Buffer.from(value, "utf8") : value;
 
-    const length = Buffer.alloc(8);
+    const length = Buffer.allocUnsafe(8);
     length.writeBigUInt64LE(BigInt(bytes.length));
 
     this.hash.update(length);

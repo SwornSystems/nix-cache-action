@@ -13,28 +13,26 @@ interface NarInfo {
 
 export class Cache {
   static readonly path = join(tmpdir(), "nix-cache-action");
-  readonly directory: string;
-  entries: NarInfo[];
+  private entries: NarInfo[];
 
-  private constructor(directory: string, entries: NarInfo[]) {
-    this.directory = directory;
+  private constructor(entries: NarInfo[]) {
     this.entries = entries;
   }
 
-  static async open(directory: string = Cache.path): Promise<Cache> {
-    const files = await readdir(directory);
+  static async open(): Promise<Cache> {
+    const files = await readdir(Cache.path);
     const narInfos = await Promise.all(
       files
         .filter((file) => file.endsWith(".narinfo"))
         .map(async (file) => {
-          const filePath = join(directory, file);
+          const filePath = join(Cache.path, file);
           const content = await readFile(filePath, "utf8");
           const fields = Cache.parseNarInfo(content);
           return { file, fields };
         })
     );
 
-    return new Cache(directory, narInfos);
+    return new Cache(narInfos);
   }
 
   static async init(): Promise<void> {
@@ -44,13 +42,12 @@ export class Cache {
 
   // Caches ultimate paths.
   async populate(paths: string[], db: Db): Promise<number> {
-    const narDirectory = join(this.directory, "nar");
+    const narDirectory = join(Cache.path, "nar");
     await mkdir(narDirectory, { recursive: true });
 
-    const infos = db.ultimatePathInfo(paths);
-
+    const ultimates = db.ultimates(paths);
     const newEntries = await Promise.all(
-      infos.map(async (info) => {
+      ultimates.map(async (info) => {
         const [storeHash] = basename(info.path).split("-");
         const references = info.references.map((ref) => basename(ref)).join(" ");
 
@@ -69,8 +66,9 @@ export class Cache {
         ]);
 
         const narInfoFile = `${storeHash}.narinfo`;
-        const narInfoContent = [...fields].map(([key, value]) => `${key}: ${value}`).join("\n");
-        await writeFile(join(this.directory, narInfoFile), `${narInfoContent}\n`);
+        const narInfoPath = join(Cache.path, narInfoFile);
+        const narInfo = [...fields].map(([key, value]) => `${key}: ${value}`).join("\n");
+        await writeFile(narInfoPath, `${narInfo}\n`);
 
         return { file: narInfoFile, fields };
       })
@@ -96,7 +94,11 @@ export class Cache {
       this.entries.map(async (narInfo) => {
         const hash = basename(narInfo.file, ".narinfo");
         const checks = substituters.map(async (sub) => {
-          const response = await fetch(`${sub}/${hash}.narinfo`, { method: "HEAD" });
+          const response = await fetch(`${sub}/${hash}.narinfo`, {
+            method: "HEAD",
+            signal: AbortSignal.timeout(5000)
+          });
+
           if (!response.ok) {
             throw new Error(`Not found: ${sub}/${hash}.narinfo`);
           }
@@ -127,17 +129,18 @@ export class Cache {
       targets.map(async (narInfo) => {
         const url = narInfo.fields.get("URL");
         if (url !== undefined) {
-          const narFile = join(this.directory, url);
+          const narFile = join(Cache.path, url);
           await rm(narFile, { force: true });
         }
 
-        const narInfoPath = join(this.directory, narInfo.file);
-        await rm(narInfoPath);
+        const narInfoPath = join(Cache.path, narInfo.file);
+        await rm(narInfoPath, { force: true });
       })
     );
 
     const removed = new Set(targets);
     this.entries = this.entries.filter((narInfo) => !removed.has(narInfo));
+
     return targets;
   }
 

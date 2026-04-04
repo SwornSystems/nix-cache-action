@@ -1,4 +1,3 @@
-import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
 interface PathInfo {
@@ -13,9 +12,12 @@ export class Db {
     this.db = db;
   }
 
-  static open(store = "/"): Db {
-    const dbPath = join(store, "nix", "var", "nix", "db", "db.sqlite");
-    const db = new DatabaseSync(dbPath, { open: true, readOnly: true });
+  static open(): Db {
+    const db = new DatabaseSync("/nix/var/nix/db/db.sqlite", {
+      open: true,
+      readOnly: true
+    });
+
     return new Db(db);
   }
 
@@ -23,12 +25,12 @@ export class Db {
     this.db.close();
   }
 
-  allPaths(): Set<string> {
+  paths(): Set<string> {
     const rows = this.db.prepare("SELECT path FROM ValidPaths").all();
     return new Set(rows.map((row) => String(row.path)));
   }
 
-  ultimatePathInfo(paths: string[]): PathInfo[] {
+  ultimates(paths: string[]): PathInfo[] {
     if (paths.length === 0) {
       return [];
     }

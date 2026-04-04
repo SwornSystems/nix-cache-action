@@ -8,7 +8,6 @@ import { Snapshot } from "./snapshot.ts";
 
 const main = async (): Promise<void> => {
   const nix = await Nix.load();
-  core.info(nix.version);
 
   const key = core.getInput("key", { required: true });
   const restoreKeys = core
@@ -29,6 +28,7 @@ const main = async (): Promise<void> => {
   const cacheHit = matchedKey === key;
   core.setOutput("cache-hit", String(cacheHit));
   core.saveState("key", key);
+  core.saveState("substituters", nix.substituters.join(" "));
 
   if (cacheHit) {
     core.saveState("matched-key", matchedKey);
@@ -47,7 +47,5 @@ const main = async (): Promise<void> => {
 try {
   await main();
 } catch (error: unknown) {
-  if (error instanceof Error) {
-    core.setFailed(error.message);
-  }
+  core.setFailed(error instanceof Error ? error.message : String(error));
 }

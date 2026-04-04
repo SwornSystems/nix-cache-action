@@ -3,17 +3,14 @@ import * as core from "@actions/core";
 
 import { Cache } from "./cache.ts";
 import { Db } from "./db.ts";
-import { Nix } from "./nix.ts";
 import { Snapshot } from "./snapshot.ts";
 
 const main = async (): Promise<void> => {
-  const nix = await Nix.load();
-  core.info(nix.version);
-
   const key = core.getState("key");
   const matchedKey = core.getState("matched-key");
+  const substituters = core.getState("substituters").split(" ").filter(Boolean);
 
-  if (matchedKey === key) {
+  if (matchedKey.length > 0 && matchedKey === key) {
     core.info("Exact cache hit, skipping save");
     return;
   }
@@ -41,7 +38,7 @@ const main = async (): Promise<void> => {
     core.info(`GC: removed ${stale.length} stale paths`);
   }
 
-  const upstream = await cache.sync(nix.substituters);
+  const upstream = await cache.sync(substituters);
   if (upstream.length > 0) {
     core.info(`Substituter sync: removed ${upstream.length} paths now available upstream`);
   }
@@ -53,7 +50,5 @@ const main = async (): Promise<void> => {
 try {
   await main();
 } catch (error: unknown) {
-  if (error instanceof Error) {
-    core.setFailed(error.message);
-  }
+  core.setFailed(error instanceof Error ? error.message : String(error));
 }

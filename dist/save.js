@@ -1,28 +1,26 @@
-import { c as e, d as t, i as n, l as r, n as i, o as a, r as o, t as s } from "./snapshot-jCsKKJ-r.js";
+import { c as e, d as t, l as n, n as r, o as i, r as a, t as o } from "./snapshot-CaGpseb3.js";
 //#region src/save.ts
-var c = async () => {
-	let t = await n.load();
-	r(t.version);
-	let c = e("key");
-	if (e("matched-key") === c) {
-		r("Exact cache hit, skipping save");
+var s = async () => {
+	let t = e("key"), s = e("matched-key"), c = e("substituters").split(" ").filter(Boolean);
+	if (s.length > 0 && s === t) {
+		n("Exact cache hit, skipping save");
 		return;
 	}
-	let l = i.open(), u = await s.load(), d = s.take(l);
-	r(`Store snapshot: ${d.activePaths.size} paths`);
+	let l = r.open(), u = await o.load(), d = o.take(l);
+	n(`Store snapshot: ${d.activePaths.size} paths`);
 	let f = d.diff(u);
-	r(`New paths: ${f.length}`);
-	let p = await o.open();
-	f.length > 0 && r(`Locally-built paths: ${await p.populate(f, l)}`), l.close();
+	n(`New paths: ${f.length}`);
+	let p = await a.open();
+	f.length > 0 && n(`Locally-built paths: ${await p.populate(f, l)}`), l.close();
 	let m = await p.gc(d.activePaths);
-	m.length > 0 && r(`GC: removed ${m.length} stale paths`);
-	let h = await p.sync(t.substituters);
-	h.length > 0 && r(`Substituter sync: removed ${h.length} paths now available upstream`), await a([o.path], c), r(`Cache saved with key: ${c}`);
+	m.length > 0 && n(`GC: removed ${m.length} stale paths`);
+	let h = await p.sync(c);
+	h.length > 0 && n(`Substituter sync: removed ${h.length} paths now available upstream`), await i([a.path], t), n(`Cache saved with key: ${t}`);
 };
 try {
-	await c();
+	await s();
 } catch (e) {
-	e instanceof Error && t(e.message);
+	t(e instanceof Error ? e.message : String(e));
 }
 //#endregion
 export {};

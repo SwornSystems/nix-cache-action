@@ -1,9 +1,9 @@
-import { exec as execCallback, execFile as execFileCallback } from "node:child_process";
+import { execFile as execFileCallback, spawn } from "node:child_process";
+import { access, appendFile, mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 
-const exec = promisify(execCallback);
 const execFile = promisify(execFileCallback);
 
 enum Platform {
@@ -17,35 +17,30 @@ enum Mode {
 }
 
 export class Nix {
-  readonly version: string;
   readonly platform: Platform;
   readonly mode: Mode;
   readonly substituters: string[];
 
-  private constructor(init: { version: string; platform: Platform; mode: Mode; substituters: string[] }) {
-    this.version = init.version;
+  private constructor(init: { platform: Platform; mode: Mode; substituters: string[] }) {
     this.platform = init.platform;
     this.mode = init.mode;
     this.substituters = init.substituters;
   }
 
-  // Detects platform/mode and loads version + substituters in parallel.
   static async load(): Promise<Nix> {
     const platform = Nix.detectPlatform();
 
-    const [versionResult, substitutersResult, mode] = await Promise.all([
-      execFile("nix", ["--version"]),
+    const [substitutersResult, mode] = await Promise.all([
       execFile("nix", ["config", "show", "substituters"]),
       Nix.detectMode()
     ]);
 
-    const version = versionResult.stdout.trim();
     const substituters = substitutersResult.stdout
       .trim()
       .split(" ")
       .filter((substituter) => !substituter.startsWith("file://"));
 
-    return new Nix({ version, platform, mode, substituters });
+    return new Nix({ platform, mode, substituters });
   }
 
   // Registers the cache directory as a Nix substituter.
@@ -88,7 +83,7 @@ export class Nix {
 
   private static async detectMode(): Promise<Mode> {
     try {
-      await execFile("pgrep", ["-x", "nix-daemon"]);
+      await access("/nix/var/nix/daemon-socket/socket");
       return Mode.MultiUser;
     } catch {
       return Mode.SingleUser;
@@ -97,16 +92,30 @@ export class Nix {
 
   private async registerMultiUser(substituter: string): Promise<void> {
     const nixDirectory = "/etc/nix";
-    await exec(`sudo mkdir -p ${nixDirectory}`);
-    await exec(`echo ${JSON.stringify(substituter)} | sudo tee -a ${nixDirectory}/nix.conf`);
+    await execFile("sudo", ["mkdir", "-p", nixDirectory]);
+
+    const nixConf = join(nixDirectory, "nix.conf");
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn("sudo", ["tee", "-a", nixConf], { stdio: ["pipe", "ignore", "inherit"] });
+      proc.on("close", (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Failed to append to ${nixConf}`));
+        }
+      });
+
+      proc.on("error", reject);
+      proc.stdin.end(substituter);
+    });
 
     switch (this.platform) {
       case Platform.Darwin: {
-        await exec("sudo launchctl kickstart -k system/org.nixos.nix-daemon");
+        await execFile("sudo", ["launchctl", "kickstart", "-k", "system/org.nixos.nix-daemon"]);
         break;
       }
       case Platform.Linux: {
-        await exec("sudo systemctl restart nix-daemon");
+        await execFile("sudo", ["systemctl", "restart", "nix-daemon"]);
         break;
       }
     }
@@ -114,12 +123,14 @@ export class Nix {
 
   private async registerSingleUser(substituter: string): Promise<void> {
     const nixDirectory = join(homedir(), ".config", "nix");
-    await exec(`mkdir -p ${nixDirectory}`);
-    await exec(`echo ${JSON.stringify(substituter)} | tee -a ${nixDirectory}/nix.conf`);
+    await mkdir(nixDirectory, { recursive: true });
+
+    const nixConf = join(nixDirectory, "nix.conf");
+    await appendFile(nixConf, substituter);
   }
 
   // Encodes bytes as nix32.
-  static toNix32(bytes: Buffer): string {
+  static nix32(bytes: Buffer): string {
     const alphabet = "0123456789abcdfghijklmnpqrsvwxyz";
 
     let value = 0n;

@@ -13,17 +13,19 @@ export class Snapshot {
   }
 
   static take(db: Db): Snapshot {
-    return new Snapshot(db.allPaths());
+    const paths = db.paths();
+    return new Snapshot(paths);
   }
 
   static async load(): Promise<Snapshot> {
     const content = await readFile(Snapshot.path, "utf8");
-    const paths = new Set(content.trim().split("\n").filter(Boolean));
-    return new Snapshot(paths);
+    const lines = content.split("\n");
+    lines.pop();
+    return new Snapshot(new Set(lines));
   }
 
   async save(): Promise<void> {
-    const content = [...this.activePaths].join("\n");
+    const content = [...this.activePaths, ""].join("\n");
     await writeFile(Snapshot.path, content);
   }
 
