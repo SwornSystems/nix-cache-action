@@ -55,11 +55,11 @@ pkgs.mkShell {
 
 Results in the following cache save stats:
 
-| Action             | Entries | Size    |
-| ------------------ | ------- | ------- |
-| `cache-nix-action` | 1       | 961 MiB |
-| `magic-nix-cache`  | 200     | 798 MiB |
-| `nix-cache-action` | 1       | 377 MiB |
+| Action                               | Entries | Size    |
+| ------------------------------------ | ------- | ------- |
+| `nix-community/cache-nix-action`     | 1       | 961 MiB |
+| `DeterminateSystems/magic-nix-cache` | 200     | 798 MiB |
+| `DuskSystems/nix-cache-action`       | 1       | 377 MiB |
 
 The tradeoff is this relies on substituters being consistently available and fast to fetch from at restore time.
 
