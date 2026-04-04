@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/DuskSystems/nix-cache-action/compare/v1.4.0...v1.4.1) (2026-04-04)
+
+
+### Bug Fixes
+
+* Create NAR directory up front ([7517f6c](https://github.com/DuskSystems/nix-cache-action/commit/7517f6cbf1beaec555b55f80caf389001ac391c2))
+* General hardening, cleanup ([a66f0bb](https://github.com/DuskSystems/nix-cache-action/commit/a66f0bb24b641797fd7bb14cb5b46c0732c72b4a))
+
 ## [1.4.0](https://github.com/DuskSystems/nix-cache-action/compare/v1.3.0...v1.4.0) (2026-04-03)
 
 
