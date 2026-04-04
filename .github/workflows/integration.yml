@@ -1,0 +1,89 @@
+name: Integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  cold:
+    name: Cold / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@08dcb3a5e62fa31e2da3d490afc4176ef55ecd72 # v30
+
+      - name: Cache
+        id: cache
+        uses: ./
+        with:
+          key: integration-${{ matrix.os }}-${{ github.sha }}
+
+      - name: Miss
+        shell: bash
+        env:
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        run: |
+          if [[ "${CACHE_HIT}" == "true" ]]; then
+            echo "Expected miss"
+            exit 1
+          fi
+
+      - name: Build
+        run: nix develop ./tests/integration --command true
+
+  warm:
+    name: Warm / ${{ matrix.os }}
+    needs: cold
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@08dcb3a5e62fa31e2da3d490afc4176ef55ecd72 # v30
+
+      - name: Cache
+        id: cache
+        uses: ./
+        with:
+          key: integration-${{ matrix.os }}-${{ github.sha }}
+
+      - name: Hit
+        shell: bash
+        env:
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        run: |
+          if [[ "${CACHE_HIT}" != "true" ]]; then
+            echo "Expected hit"
+            exit 1
+          fi
+
+      - name: Build
+        run: nix develop ./tests/integration --command true
