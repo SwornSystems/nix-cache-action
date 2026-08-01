@@ -1,4 +1,4 @@
-import { c as e, d as t, l as n, n as r, o as i, r as a, t as o } from "./snapshot-BCVRAY_w.js";
+import { c as e, d as t, l as n, n as r, o as i, r as a, t as o } from "./snapshot-BaFCzExm.js";
 //#region src/save.ts
 var s = async () => {
 	let t = e("key"), s = e("matched-key"), c = e("substituters").split(" ").filter(Boolean);
@@ -11,7 +11,11 @@ var s = async () => {
 	let f = d.diff(u);
 	n(`New paths: ${f.length}`);
 	let p = await a.open();
-	f.length > 0 && n(`Locally-built paths: ${await p.populate(f, l)}`), l.close();
+	if (f.length > 0) {
+		let e = await p.populate(f, l);
+		n(`Locally-built paths: ${e}`);
+	}
+	l.close();
 	let m = await p.gc(d.activePaths);
 	m.length > 0 && n(`GC: removed ${m.length} stale paths`);
 	let h = await p.sync(c);

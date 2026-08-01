@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -43,15 +43,19 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Run checks
-        run: ./scripts/checks.sh
+        run: ./scripts/checks.nu
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   coverage:
     name: Coverage
     needs: setup
     runs-on: ubuntu-24.04
+    permissions:
+      id-token: write # codecov
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -59,11 +63,11 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Generate coverage
-        run: ./scripts/coverage.sh
+        run: ./scripts/coverage.nu
 
       - name: Upload coverage
-        uses: codecov/codecov-action@3f20e214133d0983f9a10f3d63b0faf9241a3daa # v6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           files: coverage/coverage-final.json
           fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }} # zizmor: ignore[secrets-outside-env]
+          use_oidc: true

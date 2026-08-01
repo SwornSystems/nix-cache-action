@@ -12,21 +12,39 @@
     },
 
     "JSON": {
-      "language_servers": ["oxlint", "oxfmt", "json-language-server"],
-      "format_on_save": "on",
-      "formatter": "language_server"
+      "language_servers": ["json-language-server"],
+      "format_on_save": "off"
     },
 
     "JSONC": {
-      "language_servers": ["oxlint", "oxfmt", "json-language-server"],
-      "format_on_save": "on",
-      "formatter": "language_server"
+      "language_servers": ["json-language-server"],
+      "format_on_save": "off"
+    },
+
+    "YAML": {
+      "language_servers": ["yaml-language-server"],
+      "format_on_save": "off"
+    },
+
+    "Markdown": {
+      "language_servers": ["vale", "typos"],
+      "soft_wrap": "none"
     },
 
     "TOML": {
       "language_servers": ["tombi"],
+      "format_on_save": "off"
+    },
+
+    "Nu": {
+      "language_servers": ["nu", "nu-lint"],
       "format_on_save": "on",
-      "formatter": "language_server"
+      "formatter": {
+        "external": {
+          "command": "nufmt",
+          "arguments": ["--stdin"]
+        }
+      }
     },
 
     "Nix": {
@@ -65,9 +83,22 @@
       }
     },
 
+    "yaml-language-server": {
+      "binary": {
+        "path": "yaml-language-server",
+        "arguments": ["--stdio"]
+      }
+    },
+
     "typos": {
       "binary": {
         "path": "typos-lsp"
+      }
+    },
+
+    "vale": {
+      "binary": {
+        "path": "vale-ls"
       }
     },
 
@@ -75,6 +106,13 @@
       "binary": {
         "path": "tombi",
         "arguments": ["lsp"]
+      }
+    },
+
+    "nu-lint": {
+      "binary": {
+        "path": "nu-lint",
+        "arguments": ["--lsp", "--config", ".nu-lint.toml"]
       }
     },
 

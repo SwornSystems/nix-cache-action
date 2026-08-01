@@ -7,16 +7,16 @@ import { basename, join } from "node:path";
 import { Nar } from "./nar.ts";
 
 interface NarInfo {
-  file: string;
-  fields: Map<string, string>;
+  readonly file: string;
+  readonly fields: ReadonlyMap<string, string>;
 }
 
 export class Cache {
   static readonly path = join(tmpdir(), "nix-cache-action");
   static readonly nar = join(Cache.path, "nar");
-  private entries: NarInfo[];
+  private entries: readonly NarInfo[];
 
-  private constructor(entries: NarInfo[]) {
+  private constructor(entries: readonly NarInfo[]) {
     this.entries = entries;
   }
 
@@ -44,7 +44,7 @@ export class Cache {
   }
 
   // Caches ultimate paths.
-  async populate(paths: string[], db: Db): Promise<number> {
+  async populate(paths: readonly string[], db: Readonly<Db>): Promise<number> {
     await mkdir(Cache.nar, { recursive: true });
 
     const ultimates = db.ultimates(paths);
@@ -76,18 +76,18 @@ export class Cache {
       })
     );
 
-    this.entries.push(...newEntries);
+    this.entries = [...this.entries, ...newEntries];
     return newEntries.length;
   }
 
-  gc(activePaths: Set<string>): Promise<NarInfo[]> {
+  gc(activePaths: ReadonlySet<string>): Promise<NarInfo[]> {
     return this.retain((narInfo) => {
       const path = narInfo.fields.get("StorePath");
       return path === undefined || activePaths.has(path);
     });
   }
 
-  async sync(substituters: string[]): Promise<NarInfo[]> {
+  async sync(substituters: readonly string[]): Promise<NarInfo[]> {
     if (this.entries.length === 0 || substituters.length === 0) {
       return [];
     }
