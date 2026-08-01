@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/SwornSystems/nix-cache-action/compare/v1.4.1...v1.5.0) (2026-08-01)
+
+
+### Features
+
+* Rename DuskSystems to SwornSystems ([1052637](https://github.com/SwornSystems/nix-cache-action/commit/1052637aa78b298c944c666a04773edb72b51a41))
+
 ## [1.4.1](https://github.com/SwornSystems/nix-cache-action/compare/v1.4.0...v1.4.1) (2026-04-04)
 
 
