@@ -4,6 +4,9 @@ node_modules
 # Coverage
 coverage
 
+# Lychee
+.lycheecache
+
 # Nix
 result
 result-*

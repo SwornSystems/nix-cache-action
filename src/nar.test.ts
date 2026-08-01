@@ -1,14 +1,13 @@
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import { Nar } from "./nar.ts";
 
 // Test fixtures from `tvix`:
 // https://github.com/tvlfyi/tvix/tree/1becae0/nix-compat/src/nar/tests
-const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
+const fixturesDir = join(import.meta.dirname, "fixtures");
 
 let testDir = "";
 
@@ -34,6 +33,13 @@ describe("Nar.pack", () => {
     const path = join(testDir, "hello");
     await writeFile(path, "Hello World!");
     await packAndCompare(path, "helloworld.nar");
+  });
+
+  test("executable.nar", async () => {
+    const path = join(testDir, "exe");
+    await writeFile(path, "Hello World!");
+    await chmod(path, 0o755);
+    await packAndCompare(path, "executable.nar");
   });
 
   test("symlink.nar", async () => {

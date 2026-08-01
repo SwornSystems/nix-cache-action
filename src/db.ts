@@ -6,7 +6,7 @@ interface PathInfo {
 }
 
 export class Db {
-  private db: DatabaseSync;
+  private readonly db: DatabaseSync;
 
   private constructor(db: DatabaseSync) {
     this.db = db;
@@ -30,7 +30,7 @@ export class Db {
     return new Set(rows.map((row) => String(row.path)));
   }
 
-  ultimates(paths: string[]): PathInfo[] {
+  ultimates(paths: readonly string[]): PathInfo[] {
     if (paths.length === 0) {
       return [];
     }

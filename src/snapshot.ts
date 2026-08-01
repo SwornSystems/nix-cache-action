@@ -6,13 +6,13 @@ import { join } from "node:path";
 
 export class Snapshot {
   static readonly path = join(tmpdir(), "nix-cache-action-snapshot");
-  readonly activePaths: Set<string>;
+  readonly activePaths: ReadonlySet<string>;
 
-  private constructor(activePaths: Set<string>) {
+  private constructor(activePaths: ReadonlySet<string>) {
     this.activePaths = activePaths;
   }
 
-  static take(db: Db): Snapshot {
+  static take(db: Readonly<Db>): Snapshot {
     const paths = db.paths();
     return new Snapshot(paths);
   }
@@ -29,7 +29,7 @@ export class Snapshot {
     await writeFile(Snapshot.path, content);
   }
 
-  diff(other: Snapshot): string[] {
+  diff(other: Readonly<Snapshot>): string[] {
     return [...this.activePaths].filter((path) => !other.activePaths.has(path));
   }
 }

@@ -1,6 +1,6 @@
 name: nix-cache-action
 description: A GitHub Action for caching Nix.
-author: DuskSystems
+author: SwornSystems
 
 inputs:
   key:

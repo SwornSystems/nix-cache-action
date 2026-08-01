@@ -17,8 +17,8 @@ interface NarResult {
 
 // Serializes a store path as a Nix archive.
 export class Nar {
-  private hash: Hash;
-  private file: WriteStream;
+  private readonly hash: Hash;
+  private readonly file: WriteStream;
   private size = 0;
 
   private constructor(destination: string) {
@@ -103,7 +103,7 @@ export class Nar {
 
         if (!this.file.write(chunk)) {
           stream.pause();
-          this.file.once("drain", () => stream.resume());
+          this.file.once("drain", () => void stream.resume());
         }
       });
 

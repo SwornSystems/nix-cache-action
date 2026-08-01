@@ -4,6 +4,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 
+// oxlint-disable-next-line typescript/strict-void-return
 const execFile = promisify(execFileCallback);
 
 enum Platform {
@@ -19,9 +20,9 @@ enum Mode {
 export class Nix {
   readonly platform: Platform;
   readonly mode: Mode;
-  readonly substituters: string[];
+  readonly substituters: readonly string[];
 
-  private constructor(init: { platform: Platform; mode: Mode; substituters: string[] }) {
+  private constructor(init: Readonly<{ platform: Platform; mode: Mode; substituters: readonly string[] }>) {
     this.platform = init.platform;
     this.mode = init.mode;
     this.substituters = init.substituters;
@@ -76,9 +77,11 @@ export class Nix {
       case "openbsd":
       case "sunos":
       case "win32": {
-        throw new Error(`Unsupported platform: ${process.platform}`);
+        break;
       }
     }
+
+    throw new Error(`Unsupported platform: ${process.platform}`);
   }
 
   private static async detectMode(): Promise<Mode> {

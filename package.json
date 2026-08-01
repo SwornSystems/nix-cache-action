@@ -1,5 +1,5 @@
 {
-  "name": "@dusksystems/nix-cache-action",
+  "name": "@swornsystems/nix-cache-action",
   "version": "1.4.1",
   "description": "A GitHub Action for caching Nix.",
   "keywords": [
@@ -10,7 +10,7 @@
   "license": "MIT OR Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DuskSystems/nix-cache-action.git"
+    "url": "git+https://github.com/SwornSystems/nix-cache-action.git"
   },
   "files": [
     "LICENSE-*",
@@ -23,18 +23,18 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@actions/cache": "6.0.0",
-    "@actions/core": "3.0.0"
+    "@actions/cache": "6.2.0",
+    "@actions/core": "3.0.1"
   },
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",
-    "@types/node": "25.5.0",
-    "@vitest/coverage-v8": "4.1.2",
-    "knip": "6.3.0",
-    "release-please": "17.3.0",
-    "typescript": "6.0.2",
-    "vite": "8.0.3",
-    "vitest": "4.1.2"
+    "@types/node": "26.1.2",
+    "@vitest/coverage-v8": "4.1.10",
+    "knip": "6.31.0",
+    "release-please": "17.11.1",
+    "typescript": "7.0.2",
+    "vite": "8.2.0",
+    "vitest": "4.1.10"
   },
   "engines": {
     "node": ">=24"

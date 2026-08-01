@@ -25,6 +25,20 @@
     "no-ternary": "off",
     "sort-imports": "off",
     "sort-keys": "off",
+    "typescript/prefer-readonly-parameter-types": [
+      "error",
+      {
+        "ignoreInferredTypes": true,
+        "allow": [
+          "Buffer",
+          "DatabaseSync",
+          {
+            "from": "lib",
+            "name": ["ReadonlySet", "ReadonlyMap"]
+          }
+        ]
+      }
+    ],
     "unicorn/number-literal-case": "off"
   }
 }

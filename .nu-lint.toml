@@ -1,0 +1,9 @@
+# https://codeberg.org/wvhulle/nu-lint
+
+[rules]
+catch_builtin_error_try = "off"
+error_make_for_non_fatal = "off"
+exit_only_in_main = "off"
+merge_multiline_print = "off"
+try_instead_of_do = "off"
+unhandled_external_error = "off"
