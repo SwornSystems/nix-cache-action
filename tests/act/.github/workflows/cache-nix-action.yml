@@ -14,6 +14,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install sqlite3
+        run: sudo apt-get update && sudo apt-get install --yes sqlite3
+
       - name: Install Nix
         uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
 

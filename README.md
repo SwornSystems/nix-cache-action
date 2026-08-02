@@ -57,8 +57,8 @@ Results in the following cache save stats:
 
 | Action                               | Entries | Size    |
 | ------------------------------------ | ------- | ------- |
-| `nix-community/cache-nix-action`     | 1       | 682 MiB |
-| `DeterminateSystems/magic-nix-cache` | 200     | 523 MiB |
+| `nix-community/cache-nix-action`     | 1       | 666 MiB |
+| `DeterminateSystems/magic-nix-cache` | 185     | 592 MiB |
 | `SwornSystems/nix-cache-action`      | 1       | 377 MiB |
 
 The tradeoff is this relies on substituters being consistently available and fast to fetch from at restore time.
