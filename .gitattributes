@@ -1,2 +1,2 @@
 # Node
-dist linguist-generated
+dist/** linguist-generated
